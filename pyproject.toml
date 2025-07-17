@@ -9,10 +9,20 @@ readme = "README.md"
 requires-python = "^3.13.3"
 dependencies = [
     "fastapi (>=0.116.1,<0.117.0)",
-    "uvicorn[standard] (>=0.35.0,<0.36.0)"
+    "uvicorn[standard] (>=0.35.0,<0.36.0)",
+    "httpx (>=0.27.0,<0.28.0)",
+    "structlog (>=24.1.0,<25.0.0)",
+    "tenacity (>=8.2.3,<9.0.0)"
 ]
 
 [tool.poetry]
+name = "poshub-api"
+version = "0.1.0"
+description = "poshub api built with FastAPI"
+authors = ["Hasna"]
+packages = [
+    { include = "src" }
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
