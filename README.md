@@ -150,3 +150,48 @@ POST http://localhost:8000/orders
   "devise": "EUR"
 }
 ```
+
+
+
+
+
+##  Commandes de Développement depuis
+
+### Formatage et Qualité du Code
+
+```bash
+# Format code
+make format
+
+# Run all checks (CI pipeline)
+make check-all
+
+# Build and test Docker image
+make docker-build
+make docker-test
+```
+
+### Commandes Disponibles
+
+```bash
+# Développement
+make run-uvicorn          # Démarre l'API FastAPI
+make install              # Installe les dépendances
+make test                 # Lance les tests
+
+# Qualité du code
+make lint                 # Lint avec flake8
+make format               # Format avec black et isort
+make check-format         # Vérifie le formatage sans modifier
+make type-check           # Type checking avec mypy
+make precommit            # Lance pre-commit sur tous les fichiers
+
+# CI/CD
+make check-all            # Pipeline complète pour CI
+make clean                # Nettoie les caches
+
+# Docker
+make docker-build         # Build Docker image
+make docker-run           # Run Docker container
+make docker-test          # Test Docker container
+```
