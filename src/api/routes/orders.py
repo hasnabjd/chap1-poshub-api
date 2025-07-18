@@ -4,10 +4,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 
-from src.api.dependencies.auth import (AuthenticatedUser, RequireOrdersRead,
-                                       RequireOrdersWrite)
+from src.api.dependencies.auth import (
+    AuthenticatedUser,
+    RequireOrdersRead,
+    RequireOrdersWrite,
+)
 from src.domain.exceptions.order_exceptions import (
-    OrderAlreadyExistsException, OrderNotFoundException)
+    OrderAlreadyExistsException,
+    OrderNotFoundException,
+)
 from src.domain.schemas.order import OrderIn, OrderOut
 from src.domain.services.order_service import OrderService
 
