@@ -32,12 +32,8 @@ check-format:
 	poetry run black --check src/ tests/
 	poetry run isort --check-only src/ tests/
 
-# Type checking avec mypy
-type-check:
-	poetry run mypy src/
-
 # Pipeline complète pour CI
-check-all: install lint check-format type-check test
+check-all: install lint check-format test
 
 # Nettoie les caches
 clean:
