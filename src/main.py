@@ -5,16 +5,12 @@ import httpx
 from fastapi import FastAPI
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.api.middleware.correlation_id import (
-    CorrelationIdMiddleware,
-    configure_structlog,
-)
-from src.api.middleware.error_handler import (
-    http_exception_handler,
-    network_exception_handler,
-    server_exception_handler,
-    timeout_exception_handler,
-)
+from src.api.middleware.correlation_id import (CorrelationIdMiddleware,
+                                               configure_structlog)
+from src.api.middleware.error_handler import (http_exception_handler,
+                                              network_exception_handler,
+                                              server_exception_handler,
+                                              timeout_exception_handler)
 from src.api.routes.auth import router as auth_router
 from src.api.routes.external import router as external_router
 from src.api.routes.orders import router as orders_router
