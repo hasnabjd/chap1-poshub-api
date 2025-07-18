@@ -1,7 +1,6 @@
 from datetime import datetime
-from typing import Optional
-
-from pydantic import BaseModel, Field
+from typing import Optional, Any
+from pydantic import BaseModel, Field, field_serializer
 
 
 class ErrorDetail(BaseModel):
@@ -19,6 +18,11 @@ class ErrorResponse(BaseModel):
     error_type: str = Field(..., description="Type of error")
     details: list[ErrorDetail] = Field(..., description="List of error details")
     request_id: Optional[str] = Field(None, description="Request tracking ID")
+
+    @field_serializer('timestamp')
+    def serialize_timestamp(self, value: datetime) -> str:
+        """Serialize datetime to ISO format string"""
+        return value.isoformat()
 
     model_config = {
         "json_schema_extra": {

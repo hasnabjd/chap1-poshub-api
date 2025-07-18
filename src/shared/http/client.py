@@ -39,7 +39,8 @@ async def safe_get(
         logger.info(
             "external_request.success",
             url=url,
-            status_code=response.status_code
+            status_code=response.status_code,
+            response_size=len(response.content)
         )
         return response.json()
 
@@ -47,7 +48,8 @@ async def safe_get(
         logger.error(
             "external_request.timeout",
             url=url,
-            error=str(e)
+            error=str(e),
+            timeout_seconds=10.0
         )
         raise TimeoutError("Request timed out") from e
         
@@ -55,7 +57,8 @@ async def safe_get(
         logger.error(
             "external_request.network_error",
             url=url,
-            error=str(e)
+            error=str(e),
+            error_type=type(e).__name__
         )
         raise NetworkError("Network error occurred") from e
         
@@ -64,22 +67,25 @@ async def safe_get(
             logger.error(
                 "external_request.server_error",
                 url=url,
-                status_code=e.response.status_code
+                status_code=e.response.status_code,
+                response_body=e.response.text[:500]  # Limit response body size
             )
             raise ServerError(f"External service error: {e.response.status_code}") from e
         
         logger.error(
             "external_request.client_error",
             url=url,
-            status_code=e.response.status_code
+            status_code=e.response.status_code,
+            response_body=e.response.text[:500]  # Limit response body size
         )
         raise
 
 
 async def get_http_client(request: Request) -> httpx.AsyncClient:
     """
-    Dependency to get the HTTP client from app state
+    Dependency of FastAPI to get the HTTP client from app state
+    Used with Depends() on routers
     """
     if not hasattr(request.app.state, "http"):
-        raise RuntimeError("HTTP client not initialized")
+        raise RuntimeError("HTTP client not initialized. Check lifespan configuration.")
     return request.app.state.http 

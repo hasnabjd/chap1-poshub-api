@@ -12,7 +12,11 @@ dependencies = [
     "uvicorn[standard] (>=0.35.0,<0.36.0)",
     "httpx (>=0.27.0,<0.28.0)",
     "structlog (>=24.1.0,<25.0.0)",
-    "tenacity (>=8.2.3,<9.0.0)"
+    "tenacity (>=8.2.3,<9.0.0)",
+    "pyjwt (>=2.8.0,<3.0.0)",
+    "cryptography (>=41.0.0,<42.0.0)",
+    "python-multipart (>=0.0.6,<0.1.0)",
+    "pydantic-settings (>=2.0.0,<3.0.0)"
 ]
 
 [tool.poetry]
@@ -26,6 +30,25 @@ packages = [
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"
+pytest-asyncio = "^0.24.0"
+pytest-mock = "^3.14.0"
+requests = "^2.31.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--strict-config"
+]
+markers = [
+    "asyncio: marks tests as async",
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests"
+]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

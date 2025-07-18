@@ -5,6 +5,7 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from src.api.middleware.correlation_id import get_correlation_id
 from src.shared.http.exceptions import NetworkError, ServerError, TimeoutError
 from src.shared.schemas.error import ErrorDetail, ErrorResponse
 
@@ -18,7 +19,8 @@ def create_error_response(
 ) -> dict[str, Any]:
     """Create a standardized error response"""
     if request_id is None:
-        request_id = f"req_{uuid.uuid4().hex[:8]}"
+        # Try to get correlation ID from context, fallback to UUID
+        request_id = get_correlation_id() or f"req_{uuid.uuid4().hex[:8]}"
     
     error_response = ErrorResponse(
         status_code=status_code,
@@ -37,7 +39,8 @@ def create_error_response(
 
 async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """Handle HTTP exceptions with custom error format"""
-    request_id = f"req_{uuid.uuid4().hex[:8]}"
+    # Use correlation ID from context
+    request_id = get_correlation_id() or f"req_{uuid.uuid4().hex[:8]}"
     
     # Map HTTP status codes to error types
     error_type_mapping = {

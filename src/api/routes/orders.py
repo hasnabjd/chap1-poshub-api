@@ -4,6 +4,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from starlette import status
 
+from src.api.dependencies.auth import AuthenticatedUser, RequireOrdersRead, RequireOrdersWrite
 from src.domain.exceptions.order_exceptions import (
     OrderAlreadyExistsException,
     OrderNotFoundException,
@@ -22,7 +23,8 @@ def get_order_service() -> OrderService:
 @router.post("", status_code=status.HTTP_201_CREATED, response_model=OrderOut)
 async def create_order(
     order: OrderIn,
-    service: Annotated[OrderService, Depends(get_order_service)]
+    service: Annotated[OrderService, Depends(get_order_service)],
+    current_user: Annotated[AuthenticatedUser, RequireOrdersWrite]
 ) -> OrderOut:
     try:
         return service.create_order(order)
@@ -36,7 +38,8 @@ async def create_order(
 @router.get("/{order_id}", response_model=OrderOut)
 async def get_order(
     order_id: UUID,
-    service: Annotated[OrderService, Depends(get_order_service)]
+    service: Annotated[OrderService, Depends(get_order_service)],
+    current_user: Annotated[AuthenticatedUser, RequireOrdersRead]
 ) -> OrderOut:
     try:
         return service.get_order(order_id)

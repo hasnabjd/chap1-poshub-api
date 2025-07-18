@@ -99,3 +99,54 @@ lifespan (création)
 
 ## Workflow d'un système de "catch global" 
 safe_get → raise TimeoutError → route (pas de catch) → FastAPI → handler
+
+###  Middleware de Correlation ID
+
+Le middleware intercepte chaque requête et :
+- Extrait le `X-Correlation-ID` du header si présent
+- Génère un nouvel ID si absent (format: `req_xxxxxxxxxxxx`)
+- Stocke l'ID dans un contexte global accessible partout
+- Ajoute l'ID aux headers de réponse
+- Log automatiquement le début et la fin de chaque requête
+
+### Logger Structuré
+
+Configuration avec `structlog` pour :
+- Logs au format JSON
+- Ajout automatique du correlation ID à tous les logs
+- Timestamps ISO, niveaux de log, et métadonnées structurées
+
+## Architecture JWT + HTTPBearer
+Client → Token JWT → HTTPBearer → Validation → Vérification Scopes → Accès
+
+## 🧪 Tests avec Postman
+
+### **Étape 1 : Générer un token JWT**
+
+**Requête :**
+```
+POST http://localhost:8000/auth/token/orders-write?user_id=test-user
+```
+
+### **Étape 2 : Créer une commande (POST /orders)**
+
+**Requête :**
+```
+POST http://localhost:8000/orders
+```
+
+**Headers :**
+- `Authorization: Bearer <votre_access_token>`  
+- `Content-Type: application/json`
+ 
+ EN POSTMAN: `Bearer Token`
+
+
+**Body (JSON) :**
+```json
+{
+  "nom_client": "hasna",
+  "montant": 99.99,
+  "devise": "EUR"
+}
+```
