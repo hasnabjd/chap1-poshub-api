@@ -1,10 +1,12 @@
 from datetime import datetime
-from typing import Optional, Any
+from typing import Optional
+
 from pydantic import BaseModel, Field, field_serializer
 
 
 class ErrorDetail(BaseModel):
     """Detailed error information"""
+
     code: str = Field(..., description="Error code")
     message: str = Field(..., description="Human readable error message")
     field: Optional[str] = Field(None, description="Field that caused the error")
@@ -12,14 +14,17 @@ class ErrorDetail(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standard error response format"""
+
     error: bool = Field(True, description="Always true for error responses")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Error timestamp")
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="Error timestamp"
+    )
     status_code: int = Field(..., description="HTTP status code")
     error_type: str = Field(..., description="Type of error")
     details: list[ErrorDetail] = Field(..., description="List of error details")
     request_id: Optional[str] = Field(None, description="Request tracking ID")
 
-    @field_serializer('timestamp')
+    @field_serializer("timestamp")
     def serialize_timestamp(self, value: datetime) -> str:
         """Serialize datetime to ISO format string"""
         return value.isoformat()
@@ -35,10 +40,10 @@ class ErrorResponse(BaseModel):
                     {
                         "code": "TIMEOUT",
                         "message": "Request timed out after 10 seconds",
-                        "field": None
+                        "field": None,
                     }
                 ],
-                "request_id": "req_123456"
+                "request_id": "req_123456",
             }
         }
-    } 
+    }

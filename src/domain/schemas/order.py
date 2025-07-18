@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -14,12 +13,8 @@ class OrderIn(BaseModel):
         "strict": True,
         "populate_by_name": True,
         "json_schema_extra": {
-            "example": {
-                "nom_client": "hasna",
-                "montant": 99.99,
-                "devise": "EUR"
-            }
-        }
+            "example": {"nom_client": "hasna", "montant": 99.99, "devise": "EUR"}
+        },
     }
 
 
@@ -39,7 +34,7 @@ class OrderOut(BaseModel):
                 "nom_client": "hasna",
                 "montant": 99.99,
                 "devise": "EUR",
-                "created_by": "admin"
+                "created_by": "admin",
             }
-        }
+        },
     }

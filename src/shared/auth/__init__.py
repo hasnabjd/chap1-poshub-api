@@ -1,1 +1,1 @@
-# Module d'authentification JWT 
+# Module d'authentification JWT

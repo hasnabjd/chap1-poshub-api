@@ -1,12 +1,6 @@
 # Makefile pour PosHub API
 
-.PHONY: help dev test install
-
-help:
-	@echo "Commandes disponibles:"
-	@echo "  make dev     - Démarre l'API en mode développement"
-	@echo "  make test    - Lance les tests"
-	@echo "  make install - Installe les dépendances"
+.PHONY: help dev test install precommit
 
 # Démarre l'API FastAPI
 run-uvicorn:
@@ -19,3 +13,7 @@ test:
 # Installe les dépendances
 install:
 	poetry install 
+
+# Lance pre-commit sur tous les fichiers
+precommit:
+	poetry run pre-commit run --all-files

@@ -25,7 +25,7 @@ from src.shared.http.exceptions import NetworkError, ServerError, TimeoutError
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Configure structured logging
     configure_structlog()
-    
+
     # Create HTTP client
     async with httpx.AsyncClient() as client:
         app.state.http = client
@@ -36,7 +36,7 @@ app = FastAPI(
     title="PosHub API",
     description="API for PosHub application",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add correlation ID middleware (must be added before other middlewares)
@@ -56,4 +56,4 @@ app.include_router(external_router)
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"} 
+    return {"status": "ok"}

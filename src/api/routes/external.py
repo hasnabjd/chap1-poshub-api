@@ -10,15 +10,11 @@ router = APIRouter(tags=["external"])
 
 @router.get("/external-demo")
 async def external_demo(
-    client: Annotated[AsyncClient, Depends(get_http_client)]
+    client: Annotated[AsyncClient, Depends(get_http_client)],
 ) -> dict[str, Any]:
     """
     Demo endpoint that calls httpbin.org
     """
     # Quand une exception n'est pas capturée dans une route
     # Elle "remonte" automatiquement vers FastAPI
-    return await safe_get(
-        client,
-        "https://httpbin.org/get",
-        params={"demo": "SMCP"}
-    ) 
+    return await safe_get(client, "https://httpbin.org/get", params={"demo": "SMCP"})

@@ -16,7 +16,8 @@ dependencies = [
     "pyjwt (>=2.8.0,<3.0.0)",
     "cryptography (>=41.0.0,<42.0.0)",
     "python-multipart (>=0.0.6,<0.1.0)",
-    "pydantic-settings (>=2.0.0,<3.0.0)"
+    "pydantic-settings (>=2.0.0,<3.0.0)",
+    "flake8 (==6.0.0)",
 ]
 
 [tool.poetry]
@@ -33,6 +34,11 @@ pytest = "^8.4.1"
 pytest-asyncio = "^0.24.0"
 pytest-mock = "^3.14.0"
 requests = "^2.31.0"
+black = "^25.1.0"
+isort = "^6.0.1"
+pre-commit = "^4.2.0"
+mypy = "^1.17.0"
+pytest-cov = "^6.2.1"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -53,3 +59,23 @@ asyncio_mode = "auto"
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+target-version = ['py313']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.flake8]
+max-line-length = 120

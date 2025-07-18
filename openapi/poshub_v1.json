@@ -1,0 +1,644 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "PosHub API",
+    "description": "# PosHub API Documentation\n\nA comprehensive Point of Sale (POS) system API built with FastAPI.\n\n## Features\n\n- 🔐 **JWT Authentication**: Secure token-based authentication with scope-based permissions\n- 📦 **Order Management**: Complete order lifecycle management\n- 🌐 **External Integrations**: Safe HTTP client for external API calls\n- 🏥 **Health Monitoring**: System health checks and monitoring\n- 📊 **OpenAPI Export**: Full OpenAPI 3.0 schema export capabilities\n\n## Authentication\n\nThis API uses JWT tokens for authentication. Tokens must be included in the Authorization header:\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\n## Scopes\n\nThe API uses the following scopes for authorization:\n- `orders:read`: Read access to orders\n- `orders:write`: Write access to orders (includes read)\n\n## Rate Limiting\n\nAPI calls are subject to rate limiting. Please refer to the response headers for current limits.\n\n## Error Handling\n\nAll API errors follow RFC 7807 Problem Details format with correlation IDs for tracing.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "PosHub API Support",
+      "email": "support@poshub.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:8000/v1",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root",
+        "description": "API root endpoint - Provides basic information about the API and links to documentation.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "API information and navigation links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "version": { "type": "string" },
+                    "api_version": { "type": "string" },
+                    "documentation": {
+                      "type": "object",
+                      "properties": {
+                        "swagger_ui": { "type": "string" },
+                        "redoc": { "type": "string" },
+                        "openapi_schema": { "type": "string" }
+                      }
+                    },
+                    "health_check": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["system"]
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Health check endpoint - Returns the current status of the API server. Used for monitoring and load balancer health checks.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Health status information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "version": { "type": "string" },
+                    "api_version": { "type": "string" },
+                    "service": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["system"]
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "summary": "Get OpenAPI Schema",
+        "description": "Export OpenAPI schema as JSON - Returns the complete OpenAPI 3.0 specification for this API.",
+        "operationId": "get_openapi_schema_openapi_json_get",
+        "responses": {
+          "200": {
+            "description": "Complete OpenAPI 3.0 specification",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["system"]
+      }
+    },
+    "/v1/auth/token": {
+      "post": {
+        "summary": "Generate JWT Token",
+        "description": "Generate a JWT token with custom scopes and expiration",
+        "operationId": "generate_token_v1_auth_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TokenRequest" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Token generated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Invalid user_id or scopes"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": [
+                    {
+                      "loc": ["body", "expires_in_minutes"],
+                      "msg": "ensure this value is greater than or equal to 1",
+                      "type": "value_error.number.not_ge"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["authentication"]
+      }
+    },
+    "/v1/auth/token/orders-write": {
+      "post": {
+        "summary": "Generate Orders Write Token",
+        "description": "Quick token generation for testing order management endpoints",
+        "operationId": "generate_orders_write_token_v1_auth_token_orders_write_post",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "User ID for the token",
+              "default": "test-user",
+              "example": "test-user"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Orders write token generated successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenResponse" }
+              }
+            }
+          }
+        },
+        "tags": ["authentication"]
+      }
+    },
+    "/v1/orders": {
+      "post": {
+        "summary": "Create Order",
+        "description": "Create a new order in the system",
+        "operationId": "create_order_v1_orders_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrderIn" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Order created successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OrderOut" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid order data",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Invalid order data provided"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Not authenticated"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Insufficient permissions. Required scope: orders:write"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Order already exists",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Order with this ID already exists"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": [
+                    {
+                      "loc": ["body", "customer_id"],
+                      "msg": "field required",
+                      "type": "value_error.missing"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": ["orders"],
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/v1/orders/{order_id}": {
+      "get": {
+        "summary": "Get Order",
+        "description": "Retrieve an order by its unique ID",
+        "operationId": "get_order_v1_orders__order_id__get",
+        "parameters": [
+          {
+            "name": "order_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Order Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/OrderOut" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid order ID format",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Invalid UUID format"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Not authenticated"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permissions",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Insufficient permissions. Required scope: orders:read"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Order not found"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["orders"],
+        "security": [{ "HTTPBearer": [] }]
+      }
+    },
+    "/v1/external-demo": {
+      "get": {
+        "summary": "External API Demo",
+        "description": "Demonstration of safe external API calls",
+        "operationId": "external_demo_v1_external_demo_get",
+        "responses": {
+          "200": {
+            "description": "External API call successful",
+            "content": {
+              "application/json": {
+                "example": {
+                  "args": {
+                    "demo": "SMCP"
+                  },
+                  "headers": {
+                    "Accept": "application/json",
+                    "User-Agent": "python-httpx/0.27.0"
+                  },
+                  "origin": "203.0.113.1",
+                  "url": "https://httpbin.org/get?demo=SMCP"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request to external service",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Invalid request parameters"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "External service error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "External service unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Gateway timeout",
+            "content": {
+              "application/json": {
+                "example": {
+                  "detail": "Request timeout"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["external"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TokenRequest": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Unique identifier for the user",
+            "example": "user123"
+          },
+          "scopes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of permission scopes to include in the token",
+            "default": [],
+            "example": ["orders:read", "orders:write"]
+          },
+          "expires_in_minutes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1440,
+            "description": "Token expiration time in minutes",
+            "default": 30,
+            "example": 60
+          }
+        },
+        "required": ["user_id"],
+        "title": "TokenRequest",
+        "description": "Request model for generating JWT tokens",
+        "example": {
+          "user_id": "user123",
+          "scopes": ["orders:read", "orders:write"],
+          "expires_in_minutes": 60
+        }
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "JWT access token",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "token_type": {
+            "type": "string",
+            "description": "Token type (always 'bearer')",
+            "default": "bearer",
+            "example": "bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Token expiration time in seconds",
+            "example": 3600
+          },
+          "scopes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of scopes granted to this token",
+            "example": ["orders:read", "orders:write"]
+          }
+        },
+        "required": ["access_token", "expires_in", "scopes"],
+        "title": "TokenResponse",
+        "description": "Response model containing JWT token information",
+        "example": {
+          "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "token_type": "bearer",
+          "expires_in": 3600,
+          "scopes": ["orders:read", "orders:write"]
+        }
+      },
+      "OrderIn": {
+        "type": "object",
+        "properties": {
+          "nom_client": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Customer name"
+          },
+          "montant": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total amount"
+          },
+          "devise": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Currency code (ISO 4217)"
+          }
+        },
+        "additionalProperties": false,
+        "required": ["nom_client", "montant", "devise"],
+        "title": "OrderIn",
+        "description": "Order input model for creating new orders",
+        "example": {
+          "nom_client": "hasna",
+          "montant": 99.99,
+          "devise": "EUR"
+        }
+      },
+      "OrderOut": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique order identifier"
+          },
+          "nom_client": {
+            "type": "string",
+            "description": "Customer name"
+          },
+          "montant": {
+            "type": "number",
+            "description": "Total amount"
+          },
+          "devise": {
+            "type": "string",
+            "description": "Currency code"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User who created the order",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "required": ["order", "nom_client", "montant", "devise"],
+        "title": "OrderOut",
+        "description": "Order output model with system-generated fields",
+        "example": {
+          "order": "123e4567-e89b-12d3-a456-426614174000",
+          "nom_client": "hasna",
+          "montant": 99.99,
+          "devise": "EUR",
+          "created_by": "admin"
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "boolean",
+            "description": "Always true for error responses",
+            "default": true
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Error timestamp"
+          },
+          "status_code": {
+            "type": "integer",
+            "description": "HTTP status code"
+          },
+          "error_type": {
+            "type": "string",
+            "description": "Type of error"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            },
+            "description": "List of error details"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Request tracking ID",
+            "nullable": true
+          }
+        },
+        "required": ["timestamp", "status_code", "error_type", "details"],
+        "title": "ErrorResponse",
+        "description": "Standard error response format",
+        "example": {
+          "error": true,
+          "timestamp": "2024-03-20T10:00:00Z",
+          "status_code": 502,
+          "error_type": "EXTERNAL_SERVICE_ERROR",
+          "details": [
+            {
+              "code": "TIMEOUT",
+              "message": "Request timed out after 10 seconds",
+              "field": null
+            }
+          ],
+          "request_id": "req_123456"
+        }
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human readable error message"
+          },
+          "field": {
+            "type": "string",
+            "description": "Field that caused the error",
+            "nullable": true
+          }
+        },
+        "required": ["code", "message"],
+        "title": "ErrorDetail",
+        "description": "Detailed error information"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT Bearer token authentication"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "authentication",
+      "description": "Authentication and authorization endpoints. Generate JWT tokens with specific scopes for API access."
+    },
+    {
+      "name": "orders",
+      "description": "Order management operations. Create, retrieve, update, and delete orders with proper authorization."
+    },
+    {
+      "name": "external",
+      "description": "External API integration endpoints. Demo and utility endpoints for external service communication."
+    },
+    {
+      "name": "system",
+      "description": "System health and monitoring endpoints. Check application status and export API documentation."
+    }
+  ]
+} 
