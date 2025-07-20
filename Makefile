@@ -1,6 +1,6 @@
 # Makefile pour PosHub API
 
-.PHONY: help dev test install precommit lint format check-all clean docker-build docker-run docker-test black isort flake8 check-format
+.PHONY: help dev test install precommit lint format check-all clean docker-build docker-run docker-test black isort flake8 check-format coverage coverage-check coverage-ci mypy check
 
 # Démarre l'API FastAPI
 run-uvicorn:
@@ -9,6 +9,22 @@ run-uvicorn:
 # Lance les tests
 test:
 	poetry run pytest
+
+# Check test coverage
+coverage:
+	poetry run pytest --cov=src
+
+# Run tests with coverage and fail if < 80%
+coverage-check:
+	poetry run pytest --cov=src --cov-fail-under=80
+
+# Run tests with coverage and fail if < 80% (CI version)
+coverage-ci:
+	poetry run pytest --cov=src --cov-report=term-missing --cov-fail-under=80
+
+# Run mypy for static type checking
+mypy:
+	poetry run mypy src/
 
 # Installe les dépendances
 install:
@@ -31,12 +47,18 @@ isort:
 	poetry run isort src/ tests/
 
 # Format avec black et isort
-check-format: black isort
+format: black isort
 
+# Vérifie le formatage sans modifier
+check-format:
+	poetry run black --check src/ tests/
+	poetry run isort --check-only src/ tests/
 
+# Run all checks (mypy + precommit)
+check: mypy precommit
 
 # Pipeline complète pour CI
-check-all: install check-format lint test
+check-all: install lint check-format coverage-ci
 
 # Nettoie les caches
 clean:
