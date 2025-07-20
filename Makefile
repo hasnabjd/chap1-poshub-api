@@ -1,6 +1,6 @@
 # Makefile pour PosHub API
 
-.PHONY: help dev test install precommit lint format check-all clean docker-build docker-run docker-test
+.PHONY: help dev test install precommit lint format check-all clean docker-build docker-run docker-test black isort flake8 check-format
 
 # Démarre l'API FastAPI
 run-uvicorn:
@@ -22,18 +22,21 @@ precommit:
 lint:
 	poetry run flake8 src/ tests/
 
-# Format avec black et isort
-format:
+# Format avec black
+black:
 	poetry run black src/ tests/
+
+# Format avec isort
+isort:
 	poetry run isort src/ tests/
 
-# Vérifie le formatage sans modifier
-check-format:
-	poetry run black --check src/ tests/
-	poetry run isort --check-only src/ tests/
+# Format avec black et isort
+check-format: black isort
+
+
 
 # Pipeline complète pour CI
-check-all: install lint check-format test
+check-all: install check-format lint test
 
 # Nettoie les caches
 clean:
