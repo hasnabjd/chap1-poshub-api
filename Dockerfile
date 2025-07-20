@@ -18,11 +18,11 @@ ENV POETRY_NO_INTERACTION=1 \
     POETRY_VENV_IN_PROJECT=1 \
     POETRY_CACHE_DIR=/tmp/poetry_cache
 
-# Copier les fichiers de configuration Poetry
-COPY pyproject.toml poetry.lock ./
+# Copier le fichier de configuration Poetry
+COPY pyproject.toml ./
 
-# Installer les dépendances
-RUN poetry install --only=main && rm -rf $POETRY_CACHE_DIR
+# Générer le lock file et installer les dépendances
+RUN poetry lock && poetry install --only=main && rm -rf $POETRY_CACHE_DIR
 
 # Copier le code source
 COPY src/ ./src/
