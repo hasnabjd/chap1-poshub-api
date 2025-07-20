@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --with dev --no-root
 
+      - name: Update lock file
+        run: poetry lock
+
       - name: Run CI pipeline from Makefile
         run: make check-all
 
