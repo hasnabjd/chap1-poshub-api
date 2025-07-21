@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Stage:
+    Type: String
+    Default: dev
+    Description: Stage name (dev, staging, prod)
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.13
+    Environment:
+      Variables:
+        STAGE: !Ref Stage
+        LOG_LEVEL: INFO
+        API_KEY_PARAM: /pos-h/api-key
+        AWS_REGION: !Ref AWS::Region
+
+Resources:
+  PosHubApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: src.main.handler
+      FunctionName: !Sub "poshub-api-${Stage}"
+      Description: "PosHub API Lambda function"
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+      Policies:
+        - SSMParameterReadPolicy:
+            ParameterName: /pos-h/api-key
+        - Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+
+  PosHubApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+
+Outputs:
+  PosHubApiFunction:
+    Description: "PosHub API Lambda Function ARN"
+    Value: !GetAtt PosHubApiFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-PosHubApiFunction"
+  
+  PosHubApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${PosHubApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+    Export:
+      Name: !Sub "${AWS::StackName}-PosHubApi" 
