@@ -1,0 +1,78 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: FastAPI application with Mangum handler
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.13
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+
+Resources:
+  PythonDependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub "${Environment}-python-deps"
+      Description: Python dependencies including FastAPI and Mangum
+      ContentUri: layers/python-deps-layer.zip
+      CompatibleRuntimes:
+        - python3.13
+      RetentionPolicy: Retain
+
+# fast API
+  FastApiFunctionH:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: main.handler
+      Runtime: python3.13
+      Layers:
+        - !Ref PythonDependenciesLayer
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          LOG_LEVEL: INFO
+      Role: !Sub 'arn:aws:iam::${AWS::AccountId}:role/poshub-lambda-role-h'
+      Events:
+        ApiRoot:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+            RestApiId: !Ref FastApiGateway
+        ApiProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId: !Ref FastApiGateway
+# API Gateway
+  FastApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+
+
+
+Outputs:
+  FastApiUrl:
+    Description: "FastAPI URL"
+    Value: >-
+      !Sub "https://${FastApiGateway}.execute-api.${AWS::Region}.
+      amazonaws.com/${Environment}/"
+    Export:
+      Name: !Sub "${AWS::StackName}-FastApiUrl"
+
+  FunctionArn:
+    Description: "FastAPI Lambda Function ARN"
+    Value: !GetAtt FastApiFunctionH.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-FunctionArn"
